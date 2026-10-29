@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PalPedal - Real-Time Smart Cycle Sharing & Wallet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            --accent: #06b6d4;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navbar */
+        header {
+            background-color: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0.85rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+
+        .brand-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #34d399, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .wallet-pill {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 30px;
+            padding: 0.4rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .wallet-pill:hover {
+            background: rgba(16, 185, 129, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .wallet-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #34d399;
+        }
+
+        .user-pill {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 0.4rem 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        /* Main Container */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.5rem;
+            max-width: 1440px;
+            margin: 1.5rem auto;
+            padding: 0 1.5rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* Active Ride Banner */
+        .active-ride-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.1));
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            animation: pulse-border 2s infinite alternate;
+        }
+
+        @keyframes pulse-border {
+            from { border-color: rgba(16, 185, 129, 0.5); }
+            to { border-color: rgba(6, 182, 212, 1); }
+        }
+
+        .active-ride-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-box {
+            background: rgba(15, 23, 42, 0.7);
+            padding: 0.8rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-val {
+            font-size: 1.35rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: #38bdf8;
+            margin-top: 0.25rem;
+        }
+
+        /* Station Cards */
+        .stations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .station-item {
+            background: #151f32;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.2rem;
+            transition: all 0.2s ease;
+        }
+
+        .station-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .station-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+
+        .station-address {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.9rem;
+        }
+
+        .cycle-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .cycle-chip {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0.35rem 0.65rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cycle-chip:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--primary);
+        }
+
+        .cycle-chip.in-use {
+            opacity: 0.4;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary);
+            color: #0f172a;
+            border: none;
+            border-radius: 10px;
+            padding: 0.65rem 1.2rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        .btn-outline:hover {
+            border-color: var(--text-main);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 440px;
+            padding: 1.75rem;
+        }
+
+        /* Transactions Feed */
+        .tx-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .tx-item {
+            background: #151f32;
+            padding: 0.75rem 0.9rem;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .tx-credit {
+            color: #34d399;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tx-debit {
+            color: #f87171;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand-container">
+            <div class="brand-logo"><i class="fa-solid fa-bicycle"></i></div>
+            <div>
+                <div class="brand-title">PalPedal</div>
+                <div class="brand-sub">Smart Micro-Mobility & Wallet</div>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <div class="wallet-pill" onclick="openTopUpModal()">
+                <i class="fa-solid fa-wallet" style="color: #34d399;"></i>
+                <span>Wallet:</span>
+                <span class="wallet-amount" id="topWalletBalance">$0.00</span>
+                <i class="fa-solid fa-circle-plus" style="color: #38bdf8; font-size: 0.9rem;"></i>
+            </div>
+            <div class="user-pill">
+                <i class="fa-solid fa-circle-user" style="color: #94a3b8;"></i>
+                <span id="userNameBadge">rider1</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-layout">
+        <!-- Left Side: Station Map & Active Ride View -->
+        <section>
+            <!-- Active Ride Section -->
+            <div id="activeRideCard" class="active-ride-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">
+                            <i class="fa-solid fa-record-vinyl fa-fade"></i> ACTIVE RIDE IN PROGRESS
+                        </span>
+                        <h2 style="font-size: 1.4rem; font-weight: 800; margin-top: 0.4rem;" id="activeRideCycleNumber">Cycle CYC-101</h2>
+                    </div>
+                    <button class="btn btn-danger" onclick="openEndRideModal()">
+                        <i class="fa-solid fa-lock"></i> End Ride & Lock
+                    </button>
+                </div>
+
+                <div class="active-ride-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Duration</div>
+                        <div class="stat-val" id="activeRideTimer">00:00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Current Fare</div>
+                        <div class="stat-val" id="activeRideFare">$1.50</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Origin Dock</div>
+                        <div class="stat-val" style="font-size: 0.95rem; margin-top: 0.45rem;" id="activeRideOrigin">Central Metro</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Tariff</div>
+                        <div class="stat-val" style="font-size: 0.95rem; margin-top: 0.45rem; color: #94a3b8;">$1.50 + $0.15/m</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stations Fleet -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-charging-station" style="color: var(--accent);"></i>
+                        Available Smart Docking Stations & Cycles
+                    </div>
+                    <button class="btn btn-outline" onclick="loadFleetData()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                        <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                    </button>
+                </div>
+
+                <div id="stationsContainer" class="stations-grid">
+                    <!-- Populated via API -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Side: Digital Wallet & Quick Actions -->
+        <aside style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Integrated Wallet Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-wallet" style="color: #34d399;"></i>
+                        PalPedal Pay Wallet
+                    </div>
+                    <button class="btn" onclick="openTopUpModal()" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+                        + Top-up
+                    </button>
+                </div>
+
+                <div style="background: rgba(15, 23, 42, 0.6); padding: 1.25rem; border-radius: 12px; margin-bottom: 1.25rem; border: 1px solid rgba(255,255,255,0.06);">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">AVAILABLE BALANCE</div>
+                    <div id="sideWalletBalance" style="font-size: 2.2rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: #34d399; margin: 0.25rem 0;">
+                        $0.00
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">
+                        <i class="fa-solid fa-shield-halved" style="color: #38bdf8;"></i> Protected with ACID atomic ledger
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+                        Recent Transactions
+                    </div>
+                    <div id="txListContainer" class="tx-list">
+                        <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">Loading transactions...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick QR Code Unlock Simulation Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-qrcode" style="color: #f59e0b;"></i>
+                        Scan QR to Unlock
+                    </div>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Simulate scanning a cycle's physical QR code sticker or click any bike tag to unlock:
+                </p>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="qrInput" placeholder="e.g. QR-PAL-101" style="flex: 1; background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; color: white; padding: 0.6rem 0.8rem; font-family: 'JetBrains Mono'; font-size: 0.9rem;">
+                    <button class="btn" onclick="startRideWithQR(document.getElementById('qrInput').value)">Unlock</button>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Top-Up Wallet Modal -->
+    <div id="topUpModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">Recharge PalPedal Wallet</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Select top-up amount to instantly replenish your balance.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                <button class="btn btn-outline" onclick="selectTopUp(10)">+$10.00</button>
+                <button class="btn btn-outline" onclick="selectTopUp(20)">+$20.00</button>
+                <button class="btn btn-outline" onclick="selectTopUp(50)">+$50.00</button>
+                <button class="btn btn-outline" onclick="selectTopUp(100)">+$100.00</button>
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Custom Amount ($)</label>
+                <input type="number" id="customAmountInput" value="25" min="1" step="1" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; color: white; padding: 0.7rem; font-family: 'JetBrains Mono'; font-size: 1.1rem;">
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closeModals()">Cancel</button>
+                <button class="btn" onclick="submitWalletTopUp()">Confirm & Pay</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Ride Modal -->
+    <div id="endRideModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">Lock & Conclude Ride</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Select docking station to secure cycle lock and deduct fare.</p>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Destination Docking Station</label>
+                <select id="endStationSelect" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; color: white; padding: 0.7rem; font-size: 0.95rem;">
+                    <!-- Loaded dynamically -->
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closeModals()">Keep Riding</button>
+                <button class="btn btn-danger" onclick="submitEndRide()">Lock Bike & Pay</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAuthToken = '';
+        let currentActiveRide = null;
+        let rideTimerInterval = null;
+        let cachedStations = [];
+
+        // Auto authenticate as rider1 on load
+        async function initAuth() {
+            try {
+                const res = await fetch('/api/auth/login/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: 'rider1', password: 'palpedal123'})
+                });
+                const data = await res.json();
+                if (data.token) {
+                    currentAuthToken = data.token;
+                    document.getElementById('userNameBadge').innerText = data.user.username;
+                    refreshAll();
+                }
+            } catch (err) {
+                console.error("Auth error:", err);
+            }
+        }
+
+        async function refreshAll() {
+            await Promise.all([
+                loadWalletData(),
+                loadFleetData(),
+                checkActiveRide()
+            ]);
+        }
+
+        async function loadWalletData() {
+            try {
+                const res = await fetch('/api/wallet/', {
+                    headers: {'Authorization': `Token ${currentAuthToken}`}
+                });
+                const data = await res.json();
+                document.getElementById('topWalletBalance').innerText = `$${parseFloat(data.balance).toFixed(2)}`;
+                document.getElementById('sideWalletBalance').innerText = `$${parseFloat(data.balance).toFixed(2)}`;
+
+                const txContainer = document.getElementById('txListContainer');
+                if (!data.transactions || data.transactions.length === 0) {
+                    txContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">No transactions yet.</div>`;
+                    return;
+                }
+
+                txContainer.innerHTML = data.transactions.map(tx => `
+                    <div class="tx-item">
+                        <div>
+                            <div style="font-weight: 600;">${tx.description}</div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted);">${new Date(tx.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        </div>
+                        <div class="${tx.transaction_type === 'CREDIT' ? 'tx-credit' : 'tx-debit'}">
+                            ${tx.transaction_type === 'CREDIT' ? '+' : '-'}$${parseFloat(tx.amount).toFixed(2)}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Wallet load error:", err);
+            }
+        }
+
+        async function loadFleetData() {
+            try {
+                const res = await fetch('/api/stations/');
+                const stations = await res.json();
+                cachedStations = stations;
+
+                // Populate end station dropdown
+                const endSelect = document.getElementById('endStationSelect');
+                endSelect.innerHTML = stations.map(s => `<option value="${s.id}">${s.name} (${s.available_cycles}/${s.capacity} bikes)</option>`).join('');
+
+                const container = document.getElementById('stationsContainer');
+                container.innerHTML = stations.map(s => `
+                    <div class="station-item">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div class="station-title">${s.name}</div>
+                                <div class="station-address"><i class="fa-solid fa-location-dot"></i> ${s.address || 'Smart Dock'}</div>
+                            </div>
+                            <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">
+                                ${s.available_cycles} / ${s.capacity} Free
+                            </span>
+                        </div>
+
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 0.5rem;">
+                            AVAILABLE CYCLES (CLICK TO UNLOCK):
+                        </div>
+                        <div class="cycle-chip-list">
+                            ${s.cycles.map(c => `
+                                <div class="cycle-chip ${c.status !== 'AVAILABLE' ? 'in-use' : ''}" onclick="startRideWithQR('${c.qr_code}')">
+                                    <i class="fa-solid fa-bicycle"></i>
+                                    <span>${c.cycle_number}</span>
+                                    <span style="font-size: 0.7rem; color: #38bdf8;"><i class="fa-solid fa-bolt"></i> ${c.battery_percentage}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Fleet load error:", err);
+            }
+        }
+
+        async function checkActiveRide() {
+            try {
+                const res = await fetch('/api/rides/active/', {
+                    headers: {'Authorization': `Token ${currentAuthToken}`}
+                });
+                const data = await res.json();
+                if (data.active_ride) {
+                    currentActiveRide = data.active_ride;
+                    document.getElementById('activeRideCard').style.display = 'block';
+                    document.getElementById('activeRideCycleNumber').innerText = `Cycle ${currentActiveRide.cycle_number}`;
+                    document.getElementById('activeRideOrigin').innerText = currentActiveRide.start_station_name;
+                    
+                    if (!rideTimerInterval) {
+                        rideTimerInterval = setInterval(updateRideTimer, 1000);
+                    }
+                    updateRideTimer();
+                } else {
+                    currentActiveRide = null;
+                    document.getElementById('activeRideCard').style.display = 'none';
+                    if (rideTimerInterval) {
+                        clearInterval(rideTimerInterval);
+                        rideTimerInterval = null;
+                    }
+                }
+            } catch (err) {
+                console.error("Active ride check error:", err);
+            }
+        }
+
+        function updateRideTimer() {
+            if (!currentActiveRide) return;
+            const startTime = new Date(currentActiveRide.start_time).getTime();
+            const now = new Date().getTime();
+            const diffSeconds = Math.max(0, Math.floor((now - startTime) / 1000));
+            const mins = Math.floor(diffSeconds / 60);
+            const secs = diffSeconds % 60;
+            document.getElementById('activeRideTimer').innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            // Tariff calculation: $1.50 base + $0.15/min
+            const billableMins = Math.max(1, mins);
+            const fare = (1.50 + (billableMins * 0.15)).toFixed(2);
+            document.getElementById('activeRideFare').innerText = `$${fare}`;
+        }
+
+        async function startRideWithQR(qrCode) {
+            if (!qrCode) return;
+            if (currentActiveRide) {
+                alert('You already have an active ride in progress!');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/rides/start/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${currentAuthToken}`
+                    },
+                    body: JSON.stringify({qr_code: qrCode})
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.error || 'Unable to unlock cycle.');
+                    return;
+                }
+
+                alert(data.message);
+                document.getElementById('qrInput').value = '';
+                refreshAll();
+            } catch (err) {
+                console.error("Ride start error:", err);
+            }
+        }
+
+        async function submitEndRide() {
+            if (!currentActiveRide) return;
+            const endStationId = document.getElementById('endStationSelect').value;
+
+            try {
+                const res = await fetch('/api/rides/end/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${currentAuthToken}`
+                    },
+                    body: JSON.stringify({
+                        ride_id: currentActiveRide.id,
+                        end_station_id: endStationId
+                    })
+                });
+
+                const data = await res.json();
+                closeModals();
+                if (!res.ok) {
+                    alert(data.error || 'Failed to conclude ride.');
+                    return;
+                }
+
+                alert(`Ride Complete!\nDuration: ${data.duration_minutes} min\nTotal Fare: $${data.total_fare}\nRemaining Balance: $${data.remaining_wallet_balance}`);
+                refreshAll();
+            } catch (err) {
+                console.error("End ride error:", err);
+            }
+        }
+
+        function openTopUpModal() {
+            document.getElementById('topUpModal').style.display = 'flex';
+        }
+
+        function openEndRideModal() {
+            document.getElementById('endRideModal').style.display = 'flex';
+        }
+
+        function closeModals() {
+            document.getElementById('topUpModal').style.display = 'none';
+            document.getElementById('endRideModal').style.display = 'none';
+        }
+
+        function selectTopUp(amt) {
+            document.getElementById('customAmountInput').value = amt;
+        }
+
+        async function submitWalletTopUp() {
+            const amount = parseFloat(document.getElementById('customAmountInput').value);
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/wallet/topup/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${currentAuthToken}`
+                    },
+                    body: JSON.stringify({amount: amount, payment_method: 'Instant Card / UPI'})
+                });
+
+                const data = await res.json();
+                closeModals();
+                if (!res.ok) {
+                    alert(data.error || 'Top-up failed.');
+                    return;
+                }
+
+                alert(data.message);
+                loadWalletData();
+            } catch (err) {
+                console.error("Top-up error:", err);
+            }
+        }
+
+        // Initialize application on load
+        window.addEventListener('DOMContentLoaded', initAuth);
+    </script>
+</body>
+</html>
