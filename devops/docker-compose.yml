@@ -48,6 +48,7 @@ services:
       - static_volume:/app/staticfiles
     environment:
       DEBUG: "False"
+      DB_SSL_REQUIRE: "False"
       SECRET_KEY: "prod-palpedal-super-secret-key-2026"
       DB_ENGINE: "postgres"
       POSTGRES_DB: palpedal_db

@@ -59,6 +59,7 @@ flowchart TD
 ### 4. Production Deployment Checklist
 1. Generate high-entropy `SECRET_KEY` and store in secure secrets vault (e.g., AWS Secrets Manager, GitHub Secrets).
 2. Set `DEBUG=False` and configure `ALLOWED_HOSTS` to verified domain names.
-3. Apply database migrations: `python manage.py migrate --noinput`.
-4. Collect static files: `python manage.py collectstatic --noinput`.
-5. Run automated database backups cron job.
+3. Configure a persistent PostgreSQL database. On serverless hosts such as Vercel, set `DATABASE_URL` (or the documented `POSTGRES_*` variables); never use SQLite for production.
+4. Apply database migrations: `python manage.py migrate --noinput`.
+5. Collect static files: `python manage.py collectstatic --noinput`.
+6. Run automated database backups cron job.

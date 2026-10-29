@@ -106,19 +106,37 @@ palpedal/
 # 1. Navigate to backend
 cd palpedal/backend
 
-# 2. Apply database migrations
+# 2. Enable the local-only SQLite development setup
+export DEBUG=True
+export SECRET_KEY=local-development-only
+
+# 3. Apply database migrations
 python manage.py migrate
 
-# 3. Seed demonstration fleet, stations, and user account
+# 4. Seed demonstration fleet, stations, and user account
 python manage.py seed_data
 
-# 4. Run automated test suite
+# 5. Run automated test suite
 python manage.py test core
 
-# 5. Launch the development server & interactive simulator
+# 6. Launch the development server & interactive simulator
 python manage.py runserver 8000
 ```
 Open **`http://127.0.0.1:8000/`** in your browser to interact with the full real-time ride simulator, unlock bikes, top up your wallet, and test the system live!
+
+### Deploying the Django app to Vercel
+
+Vercel functions do not provide a persistent writable SQLite database. Configure a managed PostgreSQL database and set these Vercel environment variables for **Production** (and Preview if used):
+
+| Variable | Value |
+| --- | --- |
+| `DEBUG` | `False` |
+| `SECRET_KEY` | A newly generated, random secret; do not reuse the repository's example value |
+| `ALLOWED_HOSTS` | `palpedal.vercel.app` |
+| `DATABASE_URL` | The PostgreSQL connection string from the managed database provider |
+| `DB_SSL_REQUIRE` | `True` when the provider requires TLS (the recommended production setting) |
+
+The backend accepts `DATABASE_URL`, `POSTGRES_URL`, or `POSTGRES_URL_NON_POOLING`. Set the database variables in Vercel before deploying. Then, from `backend/`, install the requirements and run `python manage.py migrate --noinput` against that same production database. Run `python manage.py seed_data` once if the demo fleet and rider should be available. Do not use a local SQLite file or run database migrations on every serverless request.
 
 ---
 

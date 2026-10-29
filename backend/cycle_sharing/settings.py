@@ -4,14 +4,26 @@ Django settings for cycle_sharing project.
 
 from pathlib import Path
 import os
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-cycle-sharing-secret-key-prod-2026')
+DEBUG = os.environ.get('DEBUG', 'False').strip().lower() in {'1', 'true', 'yes', 'on'}
 
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-local-development-only'
+    else:
+        raise ImproperlyConfigured('Set SECRET_KEY in the production environment.')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        'ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,palpedal.vercel.app'
+    ).split(',')
+    if host.strip()
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -61,26 +73,61 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cycle_sharing.wsgi.application'
 
-# Database Configuration: PostgreSQL with SQLite fallback
-DB_ENGINE = os.environ.get('DB_ENGINE', 'sqlite')
-if DB_ENGINE == 'postgres' or os.environ.get('POSTGRES_DB'):
+# Production must use persistent PostgreSQL. SQLite is only suitable for local
+# development because serverless deployments do not provide a writable database
+# file that persists across function invocations.
+DATABASE_URL = (
+    os.environ.get('DATABASE_URL')
+    or os.environ.get('POSTGRES_URL_NON_POOLING')
+    or os.environ.get('POSTGRES_URL')
+)
+DB_ENGINE = os.environ.get('DB_ENGINE', '').strip().lower()
+DB_SSL_REQUIRE = os.environ.get('DB_SSL_REQUIRE', 'False').strip().lower() in {
+    '1', 'true', 'yes', 'on'
+}
+
+if DATABASE_URL:
+    import dj_database_url
+
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=int(os.environ.get('DB_CONN_MAX_AGE', '600')),
+            ssl_require=DB_SSL_REQUIRE or not DEBUG,
+        )
+    }
+elif DB_ENGINE == 'postgres' or os.environ.get('POSTGRES_DB'):
+    required_db_vars = ('POSTGRES_DB', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST')
+    missing_db_vars = [name for name in required_db_vars if not os.environ.get(name)]
+    if missing_db_vars:
+        raise ImproperlyConfigured(
+            'PostgreSQL is selected but these environment variables are missing: '
+            + ', '.join(missing_db_vars)
+        )
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('POSTGRES_DB', 'cycle_db'),
-            'USER': os.environ.get('POSTGRES_USER', 'cycle_user'),
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'cycle_secure_pass'),
-            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+            'NAME': os.environ['POSTGRES_DB'],
+            'USER': os.environ['POSTGRES_USER'],
+            'PASSWORD': os.environ['POSTGRES_PASSWORD'],
+            'HOST': os.environ['POSTGRES_HOST'],
             'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.environ.get('DB_CONN_MAX_AGE', '600')),
+            'OPTIONS': {'sslmode': 'require'} if DB_SSL_REQUIRE else {},
         }
     }
-else:
+elif DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+else:
+    raise ImproperlyConfigured(
+        'Production requires PostgreSQL. Set DATABASE_URL or POSTGRES_DB, '
+        'POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_HOST.'
+    )
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
