@@ -35,6 +35,9 @@ jobs:
     name: Backend Test Suite (PostgreSQL Matrix)
     runs-on: ubuntu-latest
     needs: lint
+    env:
+      # CI must use a throwaway key; production continues to require its own secret.
+      SECRET_KEY: ci-only-not-for-production
     services:
       postgres:
         image: postgres:16-alpine
