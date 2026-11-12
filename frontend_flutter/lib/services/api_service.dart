@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Configurable base URL: 10.0.2.2 for Android emulator, localhost for web/desktop, or custom LAN IP
+
   static const String baseUrl = 'http://10.0.2.2:8000/api';
 
   static Map<String, String> getHeaders({String? token}) {
@@ -16,7 +16,7 @@ class ApiService {
     return headers;
   }
 
-  // Auth
+ 
   static Future<http.Response> login(String username, String password) async {
     final url = Uri.parse('$baseUrl/auth/login/');
     return await http.post(
@@ -47,13 +47,13 @@ class ApiService {
     );
   }
 
-  // Fleet
+
   static Future<http.Response> getStations() async {
     final url = Uri.parse('$baseUrl/stations/');
     return await http.get(url, headers: getHeaders());
   }
 
-  // Wallet
+
   static Future<http.Response> getWallet(String token) async {
     final url = Uri.parse('$baseUrl/wallet/');
     return await http.get(url, headers: getHeaders(token: token));
@@ -71,7 +71,6 @@ class ApiService {
     );
   }
 
-  // Rides
   static Future<http.Response> startRide(String token, String qrCode) async {
     final url = Uri.parse('$baseUrl/rides/start/');
     return await http.post(
