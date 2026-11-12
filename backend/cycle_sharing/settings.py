@@ -1,6 +1,4 @@
-"""
-Django settings for cycle_sharing project.
-"""
+
 
 from pathlib import Path
 import os
@@ -33,12 +31,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third-party apps
+   
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
     
-    # Local apps
+   
     'core',
 ]
 
@@ -73,9 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cycle_sharing.wsgi.application'
 
-# Production must use persistent PostgreSQL. SQLite is only suitable for local
-# development because serverless deployments do not provide a writable database
-# file that persists across function invocations.
+
 DATABASE_URL = (
     os.environ.get('DATABASE_URL')
     or os.environ.get('POSTGRES_URL_NON_POOLING')
