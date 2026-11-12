@@ -36,7 +36,7 @@
             flex-direction: column;
         }
 
-        /* Top Navbar */
+        
         header {
             background-color: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(12px);
@@ -128,7 +128,6 @@
             color: var(--text-main);
         }
 
-        /* Main Container */
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 380px;
@@ -171,7 +170,7 @@
             gap: 0.6rem;
         }
 
-        /* Active Ride Banner */
+     
         .active-ride-card {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.1));
             border: 2px solid var(--primary);
@@ -320,7 +319,7 @@
             border-color: var(--text-main);
         }
 
-        /* Modal */
+      
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -344,7 +343,7 @@
             padding: 1.75rem;
         }
 
-        /* Transactions Feed */
+      
         .tx-list {
             display: flex;
             flex-direction: column;
@@ -378,7 +377,7 @@
 </head>
 <body>
 
-    <!-- Header -->
+    
     <header>
         <div class="brand-container">
             <div class="brand-logo"><i class="fa-solid fa-bicycle"></i></div>
@@ -402,11 +401,9 @@
         </div>
     </header>
 
-    <!-- Main Container -->
+  
     <main class="main-layout">
-        <!-- Left Side: Station Map & Active Ride View -->
         <section>
-            <!-- Active Ride Section -->
             <div id="activeRideCard" class="active-ride-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
@@ -440,7 +437,6 @@
                 </div>
             </div>
 
-            <!-- Stations Fleet -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">
@@ -453,14 +449,14 @@
                 </div>
 
                 <div id="stationsContainer" class="stations-grid">
-                    <!-- Populated via API -->
+                   
                 </div>
             </div>
         </section>
 
-        <!-- Right Side: Digital Wallet & Quick Actions -->
+     
         <aside style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <!-- Integrated Wallet Card -->
+         
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">
@@ -492,7 +488,7 @@
                 </div>
             </div>
 
-            <!-- Quick QR Code Unlock Simulation Card -->
+          
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">
@@ -511,7 +507,6 @@
         </aside>
     </main>
 
-    <!-- Top-Up Wallet Modal -->
     <div id="topUpModal" class="modal-overlay">
         <div class="modal-content">
             <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">Recharge PalPedal Wallet</h3>
@@ -536,7 +531,7 @@
         </div>
     </div>
 
-    <!-- End Ride Modal -->
+  
     <div id="endRideModal" class="modal-overlay">
         <div class="modal-content">
             <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">Lock & Conclude Ride</h3>
@@ -545,7 +540,7 @@
             <div style="margin-bottom: 1.25rem;">
                 <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Destination Docking Station</label>
                 <select id="endStationSelect" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; color: white; padding: 0.7rem; font-size: 0.95rem;">
-                    <!-- Loaded dynamically -->
+                
                 </select>
             </div>
 
@@ -562,7 +557,7 @@
         let rideTimerInterval = null;
         let cachedStations = [];
 
-        // Auto authenticate as rider1 on load
+      
         async function initAuth() {
             try {
                 const res = await fetch('/api/auth/login/', {
@@ -626,7 +621,7 @@
                 const stations = await res.json();
                 cachedStations = stations;
 
-                // Populate end station dropdown
+               
                 const endSelect = document.getElementById('endStationSelect');
                 endSelect.innerHTML = stations.map(s => `<option value="${s.id}">${s.name} (${s.available_cycles}/${s.capacity} bikes)</option>`).join('');
 
@@ -700,7 +695,7 @@
             const secs = diffSeconds % 60;
             document.getElementById('activeRideTimer').innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-            // Tariff calculation: $1.50 base + $0.15/min
+           
             const billableMins = Math.max(1, mins);
             const fare = (1.50 + (billableMins * 0.15)).toFixed(2);
             document.getElementById('activeRideFare').innerText = `$${fare}`;
@@ -816,7 +811,7 @@
             }
         }
 
-        // Initialize application on load
+       
         window.addEventListener('DOMContentLoaded', initAuth);
     </script>
 </body>
