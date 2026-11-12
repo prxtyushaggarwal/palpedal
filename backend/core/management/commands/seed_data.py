@@ -9,7 +9,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Beginning PalPedal data seeding...'))
 
-        # 1. Create or get Demo Rider
+       
         user, created = User.objects.get_or_create(
             username='rider1',
             defaults={
@@ -23,7 +23,7 @@ class Command(BaseCommand):
             user.save()
             self.stdout.write(self.style.SUCCESS('Created demo user "rider1" (password: palpedal123)'))
 
-        # Wallet
+       
         wallet, _ = Wallet.objects.get_or_create(user=user)
         wallet.balance = Decimal('35.00')
         wallet.save()
@@ -34,7 +34,7 @@ class Command(BaseCommand):
             description='Initial Promotional Top-up'
         )
 
-        # 2. Seed Stations
+       
         stations_data = [
             {
                 'name': 'PalPedal Metro Hub',
@@ -75,7 +75,7 @@ class Command(BaseCommand):
             stations.append(station)
             self.stdout.write(f'Station ready: {station.name}')
 
-        # 3. Seed Cycles
+       
         cycles_config = [
             ('CYC-101', 'QR-PAL-101', stations[0], 98),
             ('CYC-102', 'QR-PAL-102', stations[0], 92),
