@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. PostgreSQL Database Service
+ 
   db:
     image: postgres:16-alpine
     container_name: palpedal_postgres
@@ -22,7 +22,7 @@ services:
     networks:
       - palpedal_net
 
-  # 2. Redis Cache & Broker
+
   redis:
     image: redis:7-alpine
     container_name: palpedal_redis
@@ -32,7 +32,7 @@ services:
     networks:
       - palpedal_net
 
-  # 3. Django REST API Backend
+
   backend:
     build:
       context: ../backend
@@ -63,7 +63,7 @@ services:
     networks:
       - palpedal_net
 
-  # 4. Nginx Reverse Proxy
+
   nginx:
     image: nginx:alpine
     container_name: palpedal_nginx
