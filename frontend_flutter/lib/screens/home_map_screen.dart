@@ -90,11 +90,11 @@ class _HomeMapScreenState extends State<HomeMapScreen> {
                       fontWeight: FontWeight.w700,
                       fontFamily: 'monospace',
                     ),
+                    ),
+                   ],
+                   ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                 ),
           IconButton(
             icon: const Icon(Icons.logout, color: Color(0xFF94A3B8)),
             onPressed: () async {
@@ -103,11 +103,11 @@ class _HomeMapScreenState extends State<HomeMapScreen> {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                 );
-              }
-            },
-          ),
-        ],
-      ),
+                }
+               },
+              ),
+             ],
+           ),
       body: RefreshIndicator(
         onRefresh: () async => _loadInitialData(),
         child: SingleChildScrollView(
@@ -116,7 +116,7 @@ class _HomeMapScreenState extends State<HomeMapScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Active Ride Banner if present
+              
               if (ride.hasActiveRide) ...[
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -179,7 +179,6 @@ class _HomeMapScreenState extends State<HomeMapScreen> {
                 const SizedBox(height: 20),
               ],
 
-              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -195,7 +194,7 @@ class _HomeMapScreenState extends State<HomeMapScreen> {
               ),
               const SizedBox(height: 10),
 
-              // Fleet List
+            
               if (fleet.isLoading)
                 const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
               else
