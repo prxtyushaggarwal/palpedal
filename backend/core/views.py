@@ -42,7 +42,7 @@ class LoginView(APIView):
         if not user:
             return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
         token, _ = Token.objects.get_or_create(user=user)
-        # Ensure wallet exists
+       
         Wallet.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
@@ -111,7 +111,7 @@ class StartRideView(APIView):
         qr_code = serializer.validated_data['qr_code']
 
         with transaction.atomic():
-            # Check user has no ongoing active rides
+            
             active_ride = RideBooking.objects.filter(user=request.user, status='ACTIVE').first()
             if active_ride:
                 return Response({
@@ -119,7 +119,7 @@ class StartRideView(APIView):
                     'active_ride_id': str(active_ride.id)
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check wallet balance
+           
             wallet, _ = Wallet.objects.select_for_update().get_or_create(user=request.user)
             if wallet.balance < MINIMUM_WALLET_BALANCE_TO_START_RIDE:
                 return Response({
@@ -127,7 +127,7 @@ class StartRideView(APIView):
                     'current_balance': str(wallet.balance)
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Find cycle
+          
             try:
                 cycle = Cycle.objects.select_for_update().get(qr_code=qr_code)
             except Cycle.DoesNotExist:
@@ -138,13 +138,13 @@ class StartRideView(APIView):
 
             origin_station = cycle.current_station
 
-            # Unlock cycle
+           
             cycle.status = 'IN_USE'
             cycle.lock_status = 'UNLOCKED'
             cycle.current_station = None
             cycle.save()
 
-            # Create Ride Booking
+          
             ride = RideBooking.objects.create(
                 user=request.user,
                 cycle=cycle,
@@ -182,7 +182,7 @@ class EndRideView(APIView):
 
             cycle = Cycle.objects.select_for_update().get(id=ride.cycle.id)
 
-            # Finalize ride calculations
+            
             end_now = timezone.now()
             mins, fare = ride.calculate_fare(end_now)
 
@@ -193,18 +193,18 @@ class EndRideView(APIView):
             ride.status = 'COMPLETED'
             ride.save()
 
-            # Lock cycle back at the station
+            
             cycle.status = 'AVAILABLE'
             cycle.lock_status = 'LOCKED'
             cycle.current_station = station
             cycle.save()
 
-            # Deduct from Wallet atomically
+          
             wallet, _ = Wallet.objects.select_for_update().get_or_create(user=request.user)
             wallet.balance -= fare
             wallet.save()
 
-            # Record Wallet Debit Transaction
+           
             WalletTransaction.objects.create(
                 wallet=wallet,
                 transaction_type='DEBIT',
