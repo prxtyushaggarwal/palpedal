@@ -18,7 +18,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', '')
         )
-        # Create empty wallet with initial welcome bonus or $0.00
+      
         Wallet.objects.create(user=user, balance=Decimal('0.00'))
         return user
 
